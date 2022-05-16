@@ -1,9 +1,11 @@
-# Open source (MIT license) python package for conducting equivalent static analysis on structures with dampers as vibration control devices.
-# The procedure is according to ASCE7-16 design requirements.
-# Developed by Amin Moghaddasi SEI member of ASCE. Member I.D. #: 1221458
-# I would be happy if you contribute further to this project.
-# Reach me on Github: https://github.com/Amin-Moghaddasi 
-# Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the begineers using this code.
+"""
+Open source (MIT license) python package for conducting equivalent static analysis on structures with dampers as vibration control devices.
+The procedure is according to ASCE7-16 design requirements.
+Developed by Amin Moghaddasi SEI member of ASCE. Member I.D. #: 1221458
+I would be happy if you contribute further to this project.
+Reach me on Github: https://github.com/Amin-Moghaddasi 
+Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the begineer designers using this code.
+"""
 from math import pow as power # Function returning x to the power of y (power(x,y)). Example: power(3,4)= 3^4=81
 from math import sqrt as square_root # Function returning the square root of a given number. Example: square_root(4)=2
 from math import pi # Function returning value of the number Pi
@@ -205,7 +207,7 @@ class Initials: # A class for calculating the initial analysis values
         return story_weight_list
     @staticmethod
     def Total_mass_of_the_structure(story_weight_values):
-        """Calculates the total mass of the structure given the values of each story (W)
+        """Calculates the total mass of the structure given the values of each story (W_bar)
 
         Args:
             story_weight_values (list): List containing story weight values from the first floor to the top roof,respectively
@@ -233,6 +235,34 @@ class Initials: # A class for calculating the initial analysis values
             beta_HD=qh*(0.64-beta_I)*(1-(1/mu_D))
             return beta_HD
 class First_Mode_Parameters: # A class for the first-mode-related calculations
+    @staticmethod
+    def Fundamental_lateral_force_lsit(w1,phi_1,Gamma_1,W_bar_1,V1):
+        """Calculates the list containing lateral force values for each story for the first mode (F1)
+
+        Args:
+            w1 (list): List containing story weight values
+            phi_1 (list): Modal shape vector for the first mode
+            Gamma_1 (double): Mode participationfactro for the first mode
+            W_bar_1 (double): Modal mass of the structure for the first mode
+            V1 (double): Base shear for the first mode
+        """        
+        F1=[0]*len(phi_1)
+        for i in range(len(phi_1)):
+            F1[i]=(w1[i]*phi_1[i]*Gamma_1*V1)/W_bar_1
+        return F1
+    @staticmethod
+    def Design_deflection(D1D,phi_1):
+        """Calculates the design deflection of each story at its
+           center of rigidity for the fisrt mode (delta_1D)
+
+        Args:
+            D1D (double): Design displacement of the center of rigidity at the last roof level for the first mode
+            phi_1 (list): Modal shape vector of the structure for the fisrt mode
+        """        
+        delta_1D=[0]*len(phi_1)
+        for i in range(len(phi_1)):
+            delta_1D[i]=D1D*phi_1[i]
+        return phi_1
     @staticmethod
     def Design_roof_displacement(Gamma_1,SDS,T1D,T1,B1D,B1E,SD1):
         """Calculates the design displacement of the center of rigidity at the last roof level for the first mode (D1D)
@@ -405,7 +435,34 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         beta_E=beta_I+beta_v1
         return beta_E
 class Residual_Mode_Parameters: # A class for the residual-mode-related calculations
-    
+    @staticmethod
+    def Residual_lateral_force_lsit(w1,phi_R,Gamma_R,W_bar_R,VR):
+        """Calculates the list containing lateral force values for each story for the residual mode(FR)
+
+        Args:
+            w1 (list): List containing story weight values
+            phi_R (list): Modal shape vector for the residual mode
+            Gamma_R (double): Mode participationfactro for the residual mode
+            W_bar_R (double): Modal mass of the structure for the residual mode
+            VR (double): Base shear for the residual mode
+        """        
+        FR=[0]*len(phi_R)
+        for i in range(len(phi_R)):
+            FR[i]=(w1[i]*phi_R[i]*Gamma_R*VR)/W_bar_R
+        return FR
+    @staticmethod
+    def Design_deflection(DRD,phi_R):
+        """Calculates the design deflection of each story at its
+           center of rigidity for the residual mode (delta_RD)
+
+        Args:
+            DRD (double): Design displacement of the center of rigidity at the last roof level for the residual mode
+            phi_R (list): Modal shape vector of the structure for the residual mode
+        """        
+        delta_RD=[0]*len(phi_R)
+        for i in range(len(phi_R)):
+            delta_RD[i]=DRD*phi_R[i]
+        return phi_R
     @staticmethod
     def Design_roof_displacement(Gamma_R,SDS,TR,BR,SD1):
         """Calculates the design displacement of the center of rigidity at the last roof level for the residual mode (DRD)
@@ -530,7 +587,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
         return mu_D
     @staticmethod
     def Maximum_ductility_demand(Ts,T1D,R,Omega_0,Ie):
-        """Calculates the maximum achieveable ductility demand (mu_max)
+        """Calculates the maximum achieveable ductility demand under the conditions of the strutcure (mu_max)
 
         Args:
             Ts (double): Ts ratio (=SD1/SDS)
