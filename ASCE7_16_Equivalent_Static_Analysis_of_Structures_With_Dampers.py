@@ -236,6 +236,18 @@ class Initials: # A class for calculating the initial analysis values
             return beta_HD
 class First_Mode_Parameters: # A class for the first-mode-related calculations
     @staticmethod
+    def Fundamental_modal_strain_energy(F1,delta_1):
+        """Calculates the modal strain energy for the first mode (W_1)
+
+        Args:
+            F1 (list): List containing lateral force values for each story for the first mode
+            delta_1 (list): List containing the design deflection value for each story for the first mode
+        """        
+        W_1=0
+        for i in range(len(F1)):
+            W_1+=0.5*(F1[i]*delta_1[i])
+        return W_1
+    @staticmethod
     def Fundamental_lateral_force_lsit(w1,phi_1,Gamma_1,W_bar_1,V1):
         """Calculates the list containing lateral force values for each story for the first mode (F1)
 
@@ -262,7 +274,7 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         delta_1D=[0]*len(phi_1)
         for i in range(len(phi_1)):
             delta_1D[i]=D1D*phi_1[i]
-        return phi_1
+        return delta_1D
     @staticmethod
     def Design_roof_displacement(Gamma_1,SDS,T1D,T1,B1D,B1E,SD1):
         """Calculates the design displacement of the center of rigidity at the last roof level for the first mode (D1D)
@@ -436,6 +448,18 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         return beta_E
 class Residual_Mode_Parameters: # A class for the residual-mode-related calculations
     @staticmethod
+    def Fundamental_modal_strain_energy(FR,delta_R):
+        """Calculates the modal strain energy for the residual mode (W_R)
+
+        Args:
+            F1 (list): List containing lateral force values for each story for the residual mode
+            delta_1 (list): List containing the design deflection value for each story for the residual mode
+        """        
+        W_R=0
+        for i in range(len(FR)):
+            W_1+=0.5*(FR[i]*delta_R[i])
+        return W_R
+    @staticmethod
     def Residual_lateral_force_lsit(w1,phi_R,Gamma_R,W_bar_R,VR):
         """Calculates the list containing lateral force values for each story for the residual mode(FR)
 
@@ -462,7 +486,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         delta_RD=[0]*len(phi_R)
         for i in range(len(phi_R)):
             delta_RD[i]=DRD*phi_R[i]
-        return phi_R
+        return delta_RD
     @staticmethod
     def Design_roof_displacement(Gamma_R,SDS,TR,BR,SD1):
         """Calculates the design displacement of the center of rigidity at the last roof level for the residual mode (DRD)
