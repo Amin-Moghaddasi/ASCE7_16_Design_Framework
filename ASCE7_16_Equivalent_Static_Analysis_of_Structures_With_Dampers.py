@@ -20,25 +20,34 @@ class Initials: # A class for calculating the initial analysis values
         """        
         if any_beta<=0.02:
             any_B=0.8
-            return any_B
-        elif any_beta>0.02 and any_beta<1:
-            any_B= round(((3.11*any_beta)+0.86),2)
-            residual=((any_B*100)%10)/100
-            if 0<=residual and residual<0.05:
-                any_B-=residual
-                return any_B
-            elif 0.05<=residual and residual<=0.09:
-                any_B+=(0.1-residual)
-                return any_B
-            else:
-                print("**Error! Rounding proccess could not be completed!")
-                return 0
-        elif any_beta>=1:
-            any_B=4
-            return any_B
+        elif any_beta>0.02 and any_beta<=0.05:
+            any_B=(6.67*any_beta)+.667
+        elif 0.05<any_beta and any_beta<=0.1:
+            any_B=(3.99*any_beta)+0.8
+        elif 0.1<any_beta and any_beta<=0.2:
+            any_B=(3*any_beta)+0.899
+        elif 0.2<any_beta and any_beta<=0.3:
+            any_B=(3*any_beta)+0.899
+        elif 0.3<any_beta and any_beta<=0.4:
+            any_B=(2.99*any_beta)+0.9
+        elif 0.4<any_beta and any_beta<=0.5:
+            any_B=(2.99*any_beta)+0.9
+        elif 0.5<any_beta and any_beta<=0.6:
+            any_B=(3*any_beta)+0.899
+        elif 0.6<any_beta and any_beta<=0.7:
+            any_B=(2.99*any_beta)+0.9
+        elif 0.7<any_beta and any_beta<=0.8:
+            any_B=(2.99*any_beta)+0.9
+        elif 0.8<any_beta and any_beta<=0.9:
+            any_B=(3*any_beta)+0.899
+        elif 0.9<any_beta and any_beta<1:
+            any_B=(4*any_beta)
+        elif 1<=any_beta:
+            any_B=4  
         else:
             print('**Error! The entered beta value is not in the allowable range!')
             return 0
+        return round(any_B,3)
     @staticmethod
     def Ts(sd1,sds):
         """Calculates the Ts ratio (Ts = SD1/SDS)
@@ -47,8 +56,8 @@ class Initials: # A class for calculating the initial analysis values
             sd1 (double): Design, 5% damped, spectral response acceleration parameter at a period of 1 s
             sds (double): Design, 5% damped, spectral response acceleration parameter at a short periods
         """        
-        Ts=round((sd1/sds),2)
-        return Ts
+        Ts=sd1/sds
+        return round(Ts,3)
     @staticmethod
     def Hysteresis_loop_adjustment_factor(Ts,T1):
         """Calculates the hysteresis loop adjusment factor (qH)
@@ -188,7 +197,7 @@ class Initials: # A class for calculating the initial analysis values
             live_load_combo_coefficient (double): Live load coefficient in the desired load combination
         """        
         total_combined_load=(dead_load*dead_load_combo_coefficient)+(live_load*live_load_combo_coefficient)
-        return total_combined_load
+        return round(total_combined_load,3)
     @staticmethod
     def Story_weight_values(combined_load_list,story_area_list):
         """Calculates weight values for each story (wi)
@@ -215,7 +224,7 @@ class Initials: # A class for calculating the initial analysis values
         total_mass=0
         for i in range(len(story_weight_values)):
             total_mass+=story_weight_values[i]
-        return total_mass
+        return round(total_mass,3)
     @staticmethod
     def Element_hysteretic_damping(beta_I,qh,mu_D):
         """Calculates the element hysteretic damping value (Beta_HD)
@@ -232,9 +241,18 @@ class Initials: # A class for calculating the initial analysis values
             print("**Error! Ductility demand value must be equal to or greater than 1! revise your input!")
             return 0
         else:        
-            beta_HD=round((qh*(0.64-beta_I)*(1-(1/mu_D))),3)
-            return beta_HD
+            beta_HD=qh*(0.64-beta_I)*(1-(1/mu_D))
+            return round(beta_HD,3)
 class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related calculations
+    @staticmethod
+    def Accurate_fundamental_period(story_weight_list,story_force_list,delta_1D):
+        numerator=0
+        denominator=0
+        for i in range(len(delta_1D)):
+            numerator+=story_weight_list[i]*power(delta_1D[i],2)
+            denominator+=story_weight_list[i]*delta_1D[i]
+        T1_accurate=2*pi*square_root((numerator)/(9.806*denominator))
+        return round(T1_accurate,3)
     @staticmethod
     def Fundamental_effective_damping_of_dampers(W_1,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
         """Calculates the eefctive damping of dampers for the fundamental mode (beta_v1)
@@ -248,8 +266,8 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         numerator=0
         for i in range (len(damper_displacement_list)):
             numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
-        beta_v1=numerator/W_1
-        return beta_v1
+        beta_v1=numerator/(4*pi*W_1)
+        return round(beta_v1,3)
     @staticmethod
     def Fundamental_damper_displacement_list(delta_1):
         """Calculates the absolute displacement for each damper at each story fo the fundamental mode
@@ -275,7 +293,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         W_1=0
         for i in range(len(F1)):
             W_1+=0.5*(F1[i]*delta_1[i])
-        return W_1
+        return round(W_1,3)
     @staticmethod
     def Fundamental_lateral_force_lsit(w1,phi_1,Gamma_1,W_bar_1,V1):
         """Calculates the list containing lateral force values for each story for the fundamental mode (F1)
@@ -332,7 +350,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
                 D1D=a
             else:
                 D1D=b
-        return D1D
+        return round(D1D,3)
     @staticmethod
     def Fundamental_design_base_shear(Cs1,W_bar_1):
         """Calculates the base shear design value for the fundamental mode (V1)
@@ -342,7 +360,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             W_bar_1 (double): Total modal mass of the structure for the fundamental mode
         """        
         V1=Cs1*W_bar_1
-        return V1
+        return round(V1,3)
     @staticmethod
     def Fundamental_response_coefficient(Ts,T1D,R,Cd,Omega_0,SD1,B1D):
         """Calculates the seismic response coefficient for the fundamental mode (Cs1)
@@ -358,10 +376,9 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         """        
         if T1D<Ts:
             Cs1=(R*SD1)/(Cd*Omega_0*B1D)
-            return round(Cs1,3)
         else:
             Cs1=(R*SD1)/(Cd*T1D*Omega_0*B1D)
-            return round(Cs1,3)
+        return round(Cs1,3)
     @staticmethod
     def Fundamental_damped_period(approxiamte_period,mu_D):
         """Calculates the damped period of the structure for the fundamental mode (T1_D)
@@ -371,7 +388,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             mu_D (double): Effective ductility demand on the seismic force-resisting system
         """        
         T1_D=approxiamte_period*square_root(mu_D)
-        return round(T1_D,2)
+        return round(T1_D,3)
     @staticmethod
     def Fundamental_approxiamte_period(structure_type,total_structure_height):
         """"Calculates the approximate value of the period of fundamental mode for the given structure
@@ -399,8 +416,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             print("*Error! selected type of structure is not included in the list!")
             return 0
         T=ct*(power(total_structure_height,x))
-        T=round(T,2)
-        return T
+        return round(T,3)
     @staticmethod
     def Fundamental_modal_shape_vector(story_height_list):
         """Calculates the modal shape vector of the fundamental mode (Phi_i1) for the given structure according to
@@ -446,7 +462,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         for i in range(len(story_weight_list)):
             denominator+=modal_shape_vector_1[i]*story_weight_list[i]
         Gamma_1=total_modal_mass/denominator
-        return Gamma_1
+        return round(Gamma_1,3)
     @staticmethod
     def Fundamental_total_damping(beta_I,beta_v1,mu_D,beta_HD):
         """Calculates to total effective damping value for the fundamental mode (beta_1D)
@@ -465,7 +481,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             return 0
         else:
             beta_1D=beta_I+(beta_v1*square_root(mu_D))+beta_HD
-            return beta_1D
+            return round(beta_1D,3)
     @staticmethod
     def Effective_damping(beta_I,beta_v1):
         """Calculates the effective damping value (beta_E)
@@ -475,7 +491,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             beta_v1 (double): Damping of dampers (nearly any kind)
         """        
         beta_E=beta_I+beta_v1
-        return beta_E
+        return round(beta_E,3)
 class Residual_Mode_Parameters: # A class for the residual-mode-related calculations
     @staticmethod
     def Residual_effective_damping_of_dampers(W_R,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
@@ -490,8 +506,12 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         numerator=0
         for i in range (len(damper_displacement_list)):
             numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
-        beta_vr=numerator/W_R
-        return beta_vr
+        try:
+            beta_vr=numerator/(4*pi*W_R)
+        except:
+            print("**Error! Division by zero occured!")
+            return 0
+        return round(beta_vr,3)
     @staticmethod
     def Residual_damper_displacement_list(delta_R):
         """Calculates the absolute displacement for each damper at each story fo the residual mode
@@ -517,7 +537,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         W_R=0
         for i in range(len(FR)):
             W_R+=0.5*(FR[i]*delta_R[i])
-        return W_R
+        return round(W_R,3)
     @staticmethod
     def Residual_lateral_force_lsit(w1,phi_R,Gamma_R,W_bar_R,VR):
         """Calculates the list containing lateral force values for each story for the residual mode(FR)
@@ -563,7 +583,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             DRD=a
         else:
             DRD=b
-        return DRD
+        return round(DRD,3)
     @staticmethod
     def Residual_design_base_shear(Csr,W_bar_R):
         """Calculates the base shear design value for the residual mode (Vr)
@@ -573,7 +593,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             W_bar_R (double): Total modal mass of the structure for the residual mode
         """        
         Vr=Csr*W_bar_R
-        return Vr
+        return round(Vr,3)
     @staticmethod
     def Residual_mode_response_coefficient(R,Cd,Omega_0,SDS,BR):
         """Calculates the seismic response coefficient for the residual mode (CsR)
@@ -586,7 +606,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             BR (double): B coefficient for the redidual mode (Table 18-7.2, ASCE7-16)
         """        
         CsR=(R*SDS)/(Cd*Omega_0*BR)
-        return CsR
+        return round(CsR,3)
     @staticmethod
     def Residual_mode_period(fundamental_mode_period):
         """Calculates the period for the residual mode of a given structure
@@ -594,8 +614,8 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         Args:
             fundamental_mode_period (double): Period of the fundamental mode of the structure
         """        
-        Tr=round((0.4*fundamental_mode_period),3)
-        return Tr
+        Tr=0.4*fundamental_mode_period
+        return round(Tr,3)
     @staticmethod
     def Gamma_R(gamma_1):
         """Calculates the mode participation factor (Gamma_R) for the residual mode
@@ -603,8 +623,8 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         Args:
             gamma_1 (double): The mode participation factor for the fist mode
         """       
-        gamma_r=round((1-gamma_1),2)
-        return gamma_r
+        gamma_r=1-gamma_1
+        return round(gamma_r,3)
     @staticmethod
     def Residual_modal_shape_vector(modal_shape_vector_1,gamma_1):
         """Calculates the modal shape vector of the residual mode (Phi_ir) for the given structure according to
@@ -617,7 +637,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         phi_ir=[0]*(len(modal_shape_vector_1)) 
         for i in range (len(modal_shape_vector_1)):
             temp=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
-            phi_ir[i]=round(temp,2)
+            phi_ir[i]=temp
         return phi_ir
     @staticmethod
     def Residual_modal_mass(total_mass,modal_mass_1):
@@ -643,7 +663,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             return 0
         else:
             beta_r=beta_I+beta_vr+beta_HD
-            return beta_r
+            return round(beta_r,3)
 class Combinatory_Calculations: # A class for conducting calculations related to both the fundamental, and the residual modes
     @staticmethod
     def Effective_yield_displacement(Omega_0,Cd,R,Gamma_1,Cs1,T1):
@@ -658,7 +678,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
             T1 (double): Approximate period of the structure for the fundamental mode
         """        
         Dy=(9.81*Omega_0*Cd*Gamma_1*Cs1*power(T1,2))/(4*R*power(pi,2))
-        return Dy
+        return round(Dy,6)
     @staticmethod
     def Existing_ductility_demand(Dy,D1D):
         """Calculates the existing ductility demand of the structure (mu_D)
@@ -668,7 +688,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
             D1D (double): Design displacement of the center of rigidity at the last roof level for the fundamental mode
         """        
         mu_D=D1D/Dy
-        return mu_D
+        return round(mu_D,3)
     @staticmethod
     def Maximum_ductility_demand(Ts,T1D,R,Omega_0,Ie):
         """Calculates the maximum achieveable ductility demand under the conditions of the strutcure (mu_max)
@@ -680,11 +700,11 @@ class Combinatory_Calculations: # A class for conducting calculations related to
             Omega_0 (double): Over strength factor
             Ie (double): Importance factor
         """        
-        if Ts>=T1D:
+        if T1D<=Ts:
             mu_max=0.5*(power((R/(Omega_0*Ie)),2)+1)
         else:
             mu_max=R/(Omega_0*Ie)
-        return mu_max
+        return round(mu_max,3)
     @staticmethod
     def Combined_base_shear(V1,VR):
         """Calculates the combined base shear using SRSS method (V)
@@ -694,4 +714,4 @@ class Combinatory_Calculations: # A class for conducting calculations related to
             VR (double): Base shear for the residual mode
         """        
         V=square_root(power(V1,2)+power(VR,2))
-        return V
+        return round(V,3)
