@@ -31,13 +31,13 @@ class Initials: # A class for calculating the initial analysis values
                 any_B+=(0.1-residual)
                 return any_B
             else:
-                print("** Error! Rounding proccess could not be completed!")
+                print("**Error! Rounding proccess could not be completed!")
                 return 0
         elif any_beta>=1:
             any_B=4
             return any_B
         else:
-            print('**Error! The entered betha value is not in the alloable range!')
+            print('**Error! The entered beta value is not in the allowable range!')
             return 0
     @staticmethod
     def Ts(sd1,sds):
@@ -47,7 +47,7 @@ class Initials: # A class for calculating the initial analysis values
             sd1 (double): Design, 5% damped, spectral response acceleration parameter at a period of 1 s
             sds (double): Design, 5% damped, spectral response acceleration parameter at a short periods
         """        
-        Ts=sd1/sds
+        Ts=round((sd1/sds),2)
         return Ts
     @staticmethod
     def Hysteresis_loop_adjustment_factor(Ts,T1):
@@ -65,7 +65,7 @@ class Initials: # A class for calculating the initial analysis values
             qh=0.5
             return qh
         else:
-            return qh
+            return round(qh,3)
     @staticmethod
     def Response_modification_coefficient(seismic_force_resisting_system_classification,type_number):
         """Returns the response modification coefficient for the chosen type of force-resisting system 
@@ -232,7 +232,7 @@ class Initials: # A class for calculating the initial analysis values
             print("**Error! Ductility demand value must be equal to or greater than 1! revise your input!")
             return 0
         else:        
-            beta_HD=qh*(0.64-beta_I)*(1-(1/mu_D))
+            beta_HD=round((qh*(0.64-beta_I)*(1-(1/mu_D))),3)
             return beta_HD
 class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related calculations
     @staticmethod
@@ -334,14 +334,14 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
                 D1D=b
         return D1D
     @staticmethod
-    def Fundamental_design_base_shear_(Cs1,W1):
+    def Fundamental_design_base_shear(Cs1,W_bar_1):
         """Calculates the base shear design value for the fundamental mode (V1)
 
         Args:
             Cs1 (double): Seismic response coefficient for the fundamental mode
-            W1 (double): Total modal mass of the structure for the fundamental mode
+            W_bar_1 (double): Total modal mass of the structure for the fundamental mode
         """        
-        V1=Cs1*W1
+        V1=Cs1*W_bar_1
         return V1
     @staticmethod
     def Fundamental_response_coefficient(Ts,T1D,R,Cd,Omega_0,SD1,B1D):
@@ -358,10 +358,10 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         """        
         if T1D<Ts:
             Cs1=(R*SD1)/(Cd*Omega_0*B1D)
-            return Cs1
+            return round(Cs1,3)
         else:
             Cs1=(R*SD1)/(Cd*T1D*Omega_0*B1D)
-            return Cs1
+            return round(Cs1,3)
     @staticmethod
     def Fundamental_damped_period(approxiamte_period,mu_D):
         """Calculates the damped period of the structure for the fundamental mode (T1_D)
@@ -371,7 +371,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             mu_D (double): Effective ductility demand on the seismic force-resisting system
         """        
         T1_D=approxiamte_period*square_root(mu_D)
-        return T1_D
+        return round(T1_D,2)
     @staticmethod
     def Fundamental_approxiamte_period(structure_type,total_structure_height):
         """"Calculates the approximate value of the period of fundamental mode for the given structure
@@ -399,6 +399,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
             print("*Error! selected type of structure is not included in the list!")
             return 0
         T=ct*(power(total_structure_height,x))
+        T=round(T,2)
         return T
     @staticmethod
     def Fundamental_modal_shape_vector(story_height_list):
@@ -515,7 +516,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         """        
         W_R=0
         for i in range(len(FR)):
-            W_1+=0.5*(FR[i]*delta_R[i])
+            W_R+=0.5*(FR[i]*delta_R[i])
         return W_R
     @staticmethod
     def Residual_lateral_force_lsit(w1,phi_R,Gamma_R,W_bar_R,VR):
@@ -564,14 +565,14 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             DRD=b
         return DRD
     @staticmethod
-    def Residual_design_base_shear(Csr,Wr):
+    def Residual_design_base_shear(Csr,W_bar_R):
         """Calculates the base shear design value for the residual mode (Vr)
 
         Args:
             Csr (double): Seismic response coefficient for the residual mode
-            Wr (double): Total modal mass of the structure for the residual mode
+            W_bar_R (double): Total modal mass of the structure for the residual mode
         """        
-        Vr=Csr*Wr
+        Vr=Csr*W_bar_R
         return Vr
     @staticmethod
     def Residual_mode_response_coefficient(R,Cd,Omega_0,SDS,BR):
@@ -593,7 +594,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         Args:
             fundamental_mode_period (double): Period of the fundamental mode of the structure
         """        
-        Tr=0.4*fundamental_mode_period
+        Tr=round((0.4*fundamental_mode_period),3)
         return Tr
     @staticmethod
     def Gamma_R(gamma_1):
@@ -602,7 +603,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         Args:
             gamma_1 (double): The mode participation factor for the fist mode
         """       
-        gamma_r=1-gamma_1
+        gamma_r=round((1-gamma_1),2)
         return gamma_r
     @staticmethod
     def Residual_modal_shape_vector(modal_shape_vector_1,gamma_1):
@@ -615,7 +616,8 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         """       
         phi_ir=[0]*(len(modal_shape_vector_1)) 
         for i in range (len(modal_shape_vector_1)):
-            phi_ir[i]=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
+            temp=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
+            phi_ir[i]=round(temp,2)
         return phi_ir
     @staticmethod
     def Residual_modal_mass(total_mass,modal_mass_1):
@@ -629,7 +631,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         return modal_mass_r
     @staticmethod
     def Residual_mode_total_damping(beta_I,beta_vr,beta_HD):
-        """Calculates to total effective damping value for the fundamental mode (beta_1D)
+        """Calculates to total effective damping value for the residual mode (beta_R)
 
         Args:
             beta_I (double): Inherent damping e (<=3%)
@@ -640,8 +642,8 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             print("**Error! Inherent damping value must be in range 0<=beta_I<=0.03! revise your input!")
             return 0
         else:
-            beta_1r=beta_I+beta_vr+beta_HD
-            return beta_1r
+            beta_r=beta_I+beta_vr+beta_HD
+            return beta_r
 class Combinatory_Calculations: # A class for conducting calculations related to both the fundamental, and the residual modes
     @staticmethod
     def Effective_yield_displacement(Omega_0,Cd,R,Gamma_1,Cs1,T1):
