@@ -1,10 +1,10 @@
 """
-Open source (MIT license) python package for conducting equivalent static analysis on structures with dampers as vibration control devices.
-The procedure is according to ASCE7-16 design requirements.
-Developed by Amin Moghaddasi SEI member of ASCE. Member I.D. #: 1221458
-I would be happy if you contribute further to this project.
-Reach me on Github: https://github.com/Amin-Moghaddasi 
-Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the begineer designers using this code.
+* Open source (MIT license) python package for conducting equivalent static analysis on structures with dampers as vibration control devices.
+* The procedure is according to ASCE7-16 design requirements.
+* Developed by Amin Moghaddasi SEI member of ASCE. Member I.D. #: 1221458
+* I would be happy if you contribute further to this project.
+* Reach me on Github: https://github.com/Amin-Moghaddasi 
+* Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the begineer designers using this code.
 """
 from math import pow as power # Function returning x to the power of y (power(x,y)). Example: power(3,4)= 3^4=81
 from math import sqrt as square_root # Function returning the square root of a given number. Example: square_root(4)=2
@@ -55,7 +55,7 @@ class Initials: # A class for calculating the initial analysis values
 
         Args:
             Ts (double): SD1 to SDs ratio
-            T1 (double): Preiod of the first mode of the structure
+            T1 (double): Preiod of the fundamental mode of the structure
         """        
         qh=0.67*(Ts/T1)
         if qh>1:
@@ -234,14 +234,43 @@ class Initials: # A class for calculating the initial analysis values
         else:        
             beta_HD=qh*(0.64-beta_I)*(1-(1/mu_D))
             return beta_HD
-class First_Mode_Parameters: # A class for the first-mode-related calculations
+class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related calculations
     @staticmethod
-    def Fundamental_modal_strain_energy(F1,delta_1):
-        """Calculates the modal strain energy for the first mode (W_1)
+    def Fundamental_effective_damping_of_dampers(W_1,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
+        """Calculates the eefctive damping of dampers for the fundamental mode (beta_v1)
 
         Args:
-            F1 (list): List containing lateral force values for each story for the first mode
-            delta_1 (list): List containing the design deflection value for each story for the first mode
+            W_1 (double): Modal strain energy for the fundamental mode
+            damper_displacement_list (list): List containing the absolute damper displacement values for the fundamental mode
+            maximum_damper_displacement (double): Maximum nominal displacement of similar dampers
+            hysteresis_loop_area (double): Area of the hysteresis loop of the damping device (provided by the device producer)
+        """        
+        numerator=0
+        for i in range (len(damper_displacement_list)):
+            numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
+        beta_v1=numerator/W_1
+        return beta_v1
+    @staticmethod
+    def Fundamental_damper_displacement_list(delta_1):
+        """Calculates the absolute displacement for each damper at each story fo the fundamental mode
+
+        Args:
+            delta_1 (list): List containing the design deflection value for each story for the fundamental mode
+        """        
+        damp_disp=[0]*len(delta_1)
+        for i in range(len(delta_1)):
+            if i==0:
+                damp_disp[i]=abs(delta_1[i])
+            else:
+                damp_disp[i]=abs(delta_1[i]-delta_1[i-1])
+        return damp_disp
+    @staticmethod
+    def Fundamental_modal_strain_energy(F1,delta_1):
+        """Calculates the modal strain energy for the fundamental mode (W_1)
+
+        Args:
+            F1 (list): List containing lateral force values for each story for the fundamental mode
+            delta_1 (list): List containing the design deflection value for each story for the fundamental mode
         """        
         W_1=0
         for i in range(len(F1)):
@@ -249,26 +278,26 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         return W_1
     @staticmethod
     def Fundamental_lateral_force_lsit(w1,phi_1,Gamma_1,W_bar_1,V1):
-        """Calculates the list containing lateral force values for each story for the first mode (F1)
+        """Calculates the list containing lateral force values for each story for the fundamental mode (F1)
 
         Args:
             w1 (list): List containing story weight values
-            phi_1 (list): Modal shape vector for the first mode
-            Gamma_1 (double): Mode participationfactro for the first mode
-            W_bar_1 (double): Modal mass of the structure for the first mode
-            V1 (double): Base shear for the first mode
+            phi_1 (list): Modal shape vector for the fundamental mode
+            Gamma_1 (double): Mode participationfactro for the fundamental mode
+            W_bar_1 (double): Modal mass of the structure for the fundamental mode
+            V1 (double): Base shear for the fundamental mode
         """        
         F1=[0]*len(phi_1)
         for i in range(len(phi_1)):
             F1[i]=(w1[i]*phi_1[i]*Gamma_1*V1)/W_bar_1
         return F1
     @staticmethod
-    def Design_deflection(D1D,phi_1):
+    def Fundamental_design_deflection(D1D,phi_1):
         """Calculates the design deflection of each story at its
            center of rigidity for the fisrt mode (delta_1D)
 
         Args:
-            D1D (double): Design displacement of the center of rigidity at the last roof level for the first mode
+            D1D (double): Design displacement of the center of rigidity at the last roof level for the fundamental mode
             phi_1 (list): Modal shape vector of the structure for the fisrt mode
         """        
         delta_1D=[0]*len(phi_1)
@@ -276,15 +305,15 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
             delta_1D[i]=D1D*phi_1[i]
         return delta_1D
     @staticmethod
-    def Design_roof_displacement(Gamma_1,SDS,T1D,T1,B1D,B1E,SD1):
-        """Calculates the design displacement of the center of rigidity at the last roof level for the first mode (D1D)
+    def Fundamental_design_roof_displacement(Gamma_1,SDS,T1D,T1,B1D,B1E,SD1):
+        """Calculates the design displacement of the center of rigidity at the last roof level for the fundamental mode (D1D)
 
         Args:
-            Gamma_1 (double): Participation factor for the first mode
+            Gamma_1 (double): Participation factor for the fundamental mode
             SDS (double): Design, 5% damped, spectral response acceleration parameter for short periods
-            T1D (double): Damped period for the first mode
-            T1 (double): Approximate period for the first mode
-            B1D (double): B value for damped performance assumption for the first mode
+            T1D (double): Damped period for the fundamental mode
+            T1 (double): Approximate period for the fundamental mode
+            B1D (double): B value for damped performance assumption for the fundamental mode
             B1E (double): B value for the effective damping (beta_E)
             SD1 (double): Design, 5% damped, spectral response acceleration parameter at a period of 1 s
         """   
@@ -305,27 +334,27 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
                 D1D=b
         return D1D
     @staticmethod
-    def Design_base_shear_for_the_first_mode(Cs1,W1):
-        """Calculates the base shear design value for the first mode (V1)
+    def Fundamental_design_base_shear_(Cs1,W1):
+        """Calculates the base shear design value for the fundamental mode (V1)
 
         Args:
-            Cs1 (double): Seismic response coefficient for the first mode
-            W1 (double): Total modal mass of the structure for the first mode
+            Cs1 (double): Seismic response coefficient for the fundamental mode
+            W1 (double): Total modal mass of the structure for the fundamental mode
         """        
         V1=Cs1*W1
         return V1
     @staticmethod
-    def First_mode_response_coefficient(Ts,T1D,R,Cd,Omega_0,SD1,B1D):
-        """Calculates the seismic response coefficient for the first mode (Cs1)
+    def Fundamental_response_coefficient(Ts,T1D,R,Cd,Omega_0,SD1,B1D):
+        """Calculates the seismic response coefficient for the fundamental mode (Cs1)
 
         Args:
             Ts (double): Ts ratio (= sd1/sds)
-            T1D (double): Damped period of the structure for the first mode
+            T1D (double): Damped period of the structure for the fundamental mode
             R (double): Response modification coefficient
             Cd (double): Deflection amplification factor
             Omega_0 (double): Over strength factor
             SD1 (double): Design, 5% damped, spectral response acceleration parameter at a period of 1 s 
-            B1D (double): B coefficient for the damped first mode assumption (Table 18-7.2, ASCE7-16)
+            B1D (double): B coefficient for the damped fundamental mode assumption (Table 18-7.2, ASCE7-16)
         """        
         if T1D<Ts:
             Cs1=(R*SD1)/(Cd*Omega_0*B1D)
@@ -334,18 +363,18 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
             Cs1=(R*SD1)/(Cd*T1D*Omega_0*B1D)
             return Cs1
     @staticmethod
-    def First_mode_damped_period(approxiamte_period,mu_D):
-        """Calculates the damped period of the structure for the first mode (T1_D)
+    def Fundamental_damped_period(approxiamte_period,mu_D):
+        """Calculates the damped period of the structure for the fundamental mode (T1_D)
 
         Args:
-            approxiamte_period (double): Approximate value of the period of first mode for the given structure
+            approxiamte_period (double): Approximate value of the period of fundamental mode for the given structure
             mu_D (double): Effective ductility demand on the seismic force-resisting system
         """        
         T1_D=approxiamte_period*square_root(mu_D)
         return T1_D
     @staticmethod
-    def Approxiamte_first_mode_period(structure_type,total_structure_height):
-        """"Calculates the approximate value of the period of first mode for the given structure
+    def Fundamental_approxiamte_period(structure_type,total_structure_height):
+        """"Calculates the approximate value of the period of fundamental mode for the given structure
             based on Table 12.8-2 of ASCE7-16 (T1)
 
         Args:
@@ -372,12 +401,12 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         T=ct*(power(total_structure_height,x))
         return T
     @staticmethod
-    def Modal_shape_vector_of_the_first_mode(story_height_list):
-        """Calculates the modal shape vector of the first mode (Phi_i1) for the given structure according to
+    def Fundamental_modal_shape_vector(story_height_list):
+        """Calculates the modal shape vector of the fundamental mode (Phi_i1) for the given structure according to
            procedures described in chapter 18, ASCE7-16 (phi_i1)
 
         Args:
-            story_height_list (list): An array containing the story height values from the first floor to the top roof, respectively
+            story_height_list (list): An array containing the story height values from the base floor to the top roof, respectively
         """       
         phi_i1=[0]*(len(story_height_list)-1) 
         total_height = story_height_list[len(story_height_list)-1]-story_height_list[0]
@@ -387,12 +416,12 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
             phi_i1[i]=story_height/total_height
         return phi_i1
     @staticmethod
-    def Modal_mass_of_the_first_mode(story_weight_list,modal_shape_vector_1):
-        """Calculates the total modal mass of the structure for the first mode (W_bar_1)
+    def Fundamental_modal_mass(story_weight_list,modal_shape_vector_1):
+        """Calculates the total modal mass of the structure for the fundamental mode (W_bar_1)
 
         Args:
             story_weight_list (list): List containing weight values for each story from the first floor to the top roof, respectively
-            modal_shape_vector_1 (list): The modal shape vector of the first mode for the given structure from the first floor to the top roof, respectively
+            modal_shape_vector_1 (list): The modal shape vector of the fundamental mode for the given structure from the first floor to the top roof, respectively
         """ 
         numerator=0
         denominator=0
@@ -405,12 +434,12 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         return total_modal_mass
     @staticmethod
     def Gamma_1(total_modal_mass,story_weight_list,modal_shape_vector_1):
-        """Calculates the mode participation factor for the first mode (Gamma_1)
+        """Calculates the mode participation factor for the fundamental mode (Gamma_1)
 
         Args:
             total_modal_mass (double):The total modal mass of the structure
             story_weight_list (list):List containing weight values for each story from the first floor to the top roof, respectively
-            modal_shape_vector_1 (list): The modal shape vector of the first mode for the given structure from the first floor to the top roof, respectively
+            modal_shape_vector_1 (list): The modal shape vector of the fundamental mode for the given structure from the first floor to the top roof, respectively
         """        
         denominator=0
         for i in range(len(story_weight_list)):
@@ -418,8 +447,8 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         Gamma_1=total_modal_mass/denominator
         return Gamma_1
     @staticmethod
-    def First_mode_total_damping(beta_I,beta_v1,mu_D,beta_HD):
-        """Calculates to total effective damping value for the first mode (beta_1D)
+    def Fundamental_total_damping(beta_I,beta_v1,mu_D,beta_HD):
+        """Calculates to total effective damping value for the fundamental mode (beta_1D)
 
         Args:
             beta_I (double): Inherent damping (<=3%)
@@ -448,7 +477,36 @@ class First_Mode_Parameters: # A class for the first-mode-related calculations
         return beta_E
 class Residual_Mode_Parameters: # A class for the residual-mode-related calculations
     @staticmethod
-    def Fundamental_modal_strain_energy(FR,delta_R):
+    def Residual_effective_damping_of_dampers(W_R,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
+        """Calculates the eefctive damping of dampers for the residual mode (beta_vr)
+
+        Args:
+            W_R (double): Modal strain energy for the residual mode
+            damper_displacement_list (list): List containing the absolute damper displacement values for the residual mode
+            maximum_damper_displacement (double): Maximum nominal displacement of similar dampers
+            hysteresis_loop_area (double): Area of the hysteresis loop of the damping device (provided by the device producer)
+        """        
+        numerator=0
+        for i in range (len(damper_displacement_list)):
+            numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
+        beta_vr=numerator/W_R
+        return beta_vr
+    @staticmethod
+    def Residual_damper_displacement_list(delta_R):
+        """Calculates the absolute displacement for each damper at each story fo the residual mode
+
+        Args:
+            delta_R (list): List containing the design deflection value for each story for the residual mode
+        """        
+        damp_disp=[0]*len(delta_R)
+        for i in range(len(delta_R)):
+            if i==0:
+                damp_disp[i]=abs(delta_R[i])
+            else:
+                damp_disp[i]=abs(delta_R[i]-delta_R[i-1])
+        return damp_disp
+    @staticmethod
+    def Residual_modal_strain_energy(FR,delta_R):
         """Calculates the modal strain energy for the residual mode (W_R)
 
         Args:
@@ -475,7 +533,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             FR[i]=(w1[i]*phi_R[i]*Gamma_R*VR)/W_bar_R
         return FR
     @staticmethod
-    def Design_deflection(DRD,phi_R):
+    def Residual_design_deflection(DRD,phi_R):
         """Calculates the design deflection of each story at its
            center of rigidity for the residual mode (delta_RD)
 
@@ -488,7 +546,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             delta_RD[i]=DRD*phi_R[i]
         return delta_RD
     @staticmethod
-    def Design_roof_displacement(Gamma_R,SDS,TR,BR,SD1):
+    def Residual_design_roof_displacement(Gamma_R,SDS,TR,BR,SD1):
         """Calculates the design displacement of the center of rigidity at the last roof level for the residual mode (DRD)
 
         Args:
@@ -506,7 +564,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             DRD=b
         return DRD
     @staticmethod
-    def Design_base_shear_for_the_residual_mode(Csr,Wr):
+    def Residual_design_base_shear(Csr,Wr):
         """Calculates the base shear design value for the residual mode (Vr)
 
         Args:
@@ -529,13 +587,13 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         CsR=(R*SDS)/(Cd*Omega_0*BR)
         return CsR
     @staticmethod
-    def Residual_mode_period(first_mode_period):
+    def Residual_mode_period(fundamental_mode_period):
         """Calculates the period for the residual mode of a given structure
 
         Args:
-            first_mode_period (double): Period of the first mode of the structure
+            fundamental_mode_period (double): Period of the fundamental mode of the structure
         """        
-        Tr=0.4*first_mode_period
+        Tr=0.4*fundamental_mode_period
         return Tr
     @staticmethod
     def Gamma_R(gamma_1):
@@ -547,12 +605,12 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         gamma_r=1-gamma_1
         return gamma_r
     @staticmethod
-    def Modal_shape_vector_of_the_residual_mode(modal_shape_vector_1,gamma_1):
+    def Residual_modal_shape_vector(modal_shape_vector_1,gamma_1):
         """Calculates the modal shape vector of the residual mode (Phi_ir) for the given structure according to
            procedures described in chapter 18, ASCE7-16
 
         Args:
-            modal_shape_vector_1 (list): The modal shape vector of the first mode for the given structure from the first floor to the top roof, respectively
+            modal_shape_vector_1 (list): The modal shape vector of the fundamental mode for the given structure from the first floor to the top roof, respectively
             gamma_1 (double): The mode participation factor for the fist mode
         """       
         phi_ir=[0]*(len(modal_shape_vector_1)-1) 
@@ -560,18 +618,18 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             phi_ir[i]=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
         return phi_ir
     @staticmethod
-    def Modal_mass_of_the_residual_mode(total_mass,modal_mass_1):
+    def Residual_modal_mass(total_mass,modal_mass_1):
         """Calculates the total modal mass of the structure for the residual mode
 
         Args:
             total_mass (double): The total mass of the structure
-            modal_mass_1 (double): The total modal mass of the structure for the first mode
+            modal_mass_1 (double): The total modal mass of the structure for the fundamental mode
         """        
         modal_mass_r=total_mass-modal_mass_1
         return modal_mass_r
     @staticmethod
     def Residual_mode_total_damping(beta_I,beta_vr,beta_HD):
-        """Calculates to total effective damping value for the first mode (beta_1D)
+        """Calculates to total effective damping value for the fundamental mode (beta_1D)
 
         Args:
             beta_I (double): Inherent damping e (<=3%)
@@ -584,7 +642,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         else:
             beta_1r=beta_I+beta_vr+beta_HD
             return beta_1r
-class Combinatory_Calculations: # A class for conducting calculations related to both the fundamental (first), and the residual modes
+class Combinatory_Calculations: # A class for conducting calculations related to both the fundamental, and the residual modes
     @staticmethod
     def Effective_yield_displacement(Omega_0,Cd,R,Gamma_1,Cs1,T1):
         """Calculates the effective yield displacement of the center of rigidity of the last roof (Dy)
@@ -593,9 +651,9 @@ class Combinatory_Calculations: # A class for conducting calculations related to
             Omega_0 (double): Over strength factor
             Cd (double): Deflection amplification factor
             R (double): Response modification factor
-            Gamma_1 (double): Participation factor for the first mode
-            Cs1 (double): Seismic response coefficient for the first mode
-            T1 (double): Approximate period of the structure for the first mode
+            Gamma_1 (double): Participation factor for the fundamental mode
+            Cs1 (double): Seismic response coefficient for the fundamental mode
+            T1 (double): Approximate period of the structure for the fundamental mode
         """        
         Dy=(9.81*Omega_0*Cd*Gamma_1*Cs1*power(T1,2))/(4*R*power(pi,2))
         return Dy
@@ -605,7 +663,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
 
         Args:
             Dy (double): Effective yield displacement of the center of rigidity of the last roof
-            D1D (double): Design displacement of the center of rigidity at the last roof level for the first mode
+            D1D (double): Design displacement of the center of rigidity at the last roof level for the fundamental mode
         """        
         mu_D=D1D/Dy
         return mu_D
@@ -615,7 +673,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
 
         Args:
             Ts (double): Ts ratio (=SD1/SDS)
-            T1D (double): Damped period for the first mode
+            T1D (double): Damped period for the fundamental mode
             R (double): Response modification factor
             Omega_0 (double): Over strength factor
             Ie (double): Importance factor
@@ -630,7 +688,7 @@ class Combinatory_Calculations: # A class for conducting calculations related to
         """Calculates the combined base shear using SRSS method (V)
 
         Args:
-            V1 (double): Base shear for the first mode
+            V1 (double): Base shear for the fundamental mode
             VR (double): Base shear for the residual mode
         """        
         V=square_root(power(V1,2)+power(VR,2))
