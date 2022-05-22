@@ -613,8 +613,8 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
             modal_shape_vector_1 (list): The modal shape vector of the fundamental mode for the given structure from the first floor to the top roof, respectively
             gamma_1 (double): The mode participation factor for the fist mode
         """       
-        phi_ir=[0]*(len(modal_shape_vector_1)-1) 
-        for i in range (len(modal_shape_vector_1)-1):
+        phi_ir=[0]*(len(modal_shape_vector_1)) 
+        for i in range (len(modal_shape_vector_1)):
             phi_ir[i]=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
         return phi_ir
     @staticmethod
