@@ -254,18 +254,17 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         T1_accurate=2*pi*square_root((numerator)/(9.806*denominator))
         return round(T1_accurate,3)
     @staticmethod
-    def Fundamental_effective_damping_of_dampers(W_1,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
+    def Fundamental_effective_damping_of_dampers(W_1,damper_displacement_list,maximum_damper_force):
         """Calculates the eefctive damping of dampers for the fundamental mode (beta_v1)
 
         Args:
             W_1 (double): Modal strain energy for the fundamental mode
             damper_displacement_list (list): List containing the absolute damper displacement values for the fundamental mode
-            maximum_damper_displacement (double): Maximum nominal displacement of similar dampers
-            hysteresis_loop_area (double): Area of the hysteresis loop of the damping device (provided by the device producer)
+            maximum_damper_force (double): Maximum nominal yield force of dampers (provided by the device producer)
         """        
         numerator=0
         for i in range (len(damper_displacement_list)):
-            numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
+                numerator+= 4*damper_displacement_list[i]*maximum_damper_force
         beta_v1=numerator/(4*pi*W_1)
         return round(beta_v1,3)
     @staticmethod
@@ -278,9 +277,9 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         damp_disp=[0]*len(delta_1)
         for i in range(len(delta_1)):
             if i==0:
-                damp_disp[i]=abs(delta_1[i])
+                damp_disp[i]=round(abs(delta_1[i]),3)
             else:
-                damp_disp[i]=abs(delta_1[i]-delta_1[i-1])
+                damp_disp[i]=round(abs(delta_1[i]-delta_1[i-1]),3)
         return damp_disp
     @staticmethod
     def Fundamental_modal_strain_energy(F1,delta_1):
@@ -307,7 +306,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         """        
         F1=[0]*len(phi_1)
         for i in range(len(phi_1)):
-            F1[i]=(w1[i]*phi_1[i]*Gamma_1*V1)/W_bar_1
+            F1[i]=round(((w1[i]*phi_1[i]*Gamma_1*V1)/W_bar_1),3)
         return F1
     @staticmethod
     def Fundamental_design_deflection(D1D,phi_1):
@@ -320,7 +319,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         """        
         delta_1D=[0]*len(phi_1)
         for i in range(len(phi_1)):
-            delta_1D[i]=D1D*phi_1[i]
+            delta_1D[i]=round((D1D*phi_1[i]),3)
         return delta_1D
     @staticmethod
     def Fundamental_design_roof_displacement(Gamma_1,SDS,T1D,T1,B1D,B1E,SD1):
@@ -430,7 +429,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         story_height=0
         for i in range (len(story_height_list)-1):
             story_height+=story_height_list[i+1]-story_height_list[i]
-            phi_i1[i]=story_height/total_height
+            phi_i1[i]=round((story_height/total_height),3)
         return phi_i1
     @staticmethod
     def Fundamental_modal_mass(story_weight_list,modal_shape_vector_1):
@@ -494,24 +493,22 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         return round(beta_E,3)
 class Residual_Mode_Parameters: # A class for the residual-mode-related calculations
     @staticmethod
-    def Residual_effective_damping_of_dampers(W_R,damper_displacement_list,maximum_damper_displacement,hysteresis_loop_area):
+    def Residual_effective_damping_of_dampers(W_R,damper_displacement_list,maximum_damper_force):
         """Calculates the eefctive damping of dampers for the residual mode (beta_vr)
 
         Args:
             W_R (double): Modal strain energy for the residual mode
             damper_displacement_list (list): List containing the absolute damper displacement values for the residual mode
-            maximum_damper_displacement (double): Maximum nominal displacement of similar dampers
-            hysteresis_loop_area (double): Area of the hysteresis loop of the damping device (provided by the device producer)
-        """        
-        numerator=0
-        for i in range (len(damper_displacement_list)):
-            numerator+=damper_displacement_list[i]*(hysteresis_loop_area/maximum_damper_displacement)
-        try:
-            beta_vr=numerator/(4*pi*W_R)
-        except:
-            print("**Error! Division by zero occured!")
-            return 0
-        return round(beta_vr,3)
+            maximum_damper_force (double): Maximum nominal yield force of dampers (provided by the device producer)
+        """
+        if W_R==0:
+            beta_v1=0
+        else:        
+            numerator=0
+            for i in range (len(damper_displacement_list)):
+                    numerator += (4*damper_displacement_list[i]*maximum_damper_force)
+            beta_v1=numerator/(4*pi*W_R)
+        return round(beta_v1,3)
     @staticmethod
     def Residual_damper_displacement_list(delta_R):
         """Calculates the absolute displacement for each damper at each story fo the residual mode
@@ -522,9 +519,9 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         damp_disp=[0]*len(delta_R)
         for i in range(len(delta_R)):
             if i==0:
-                damp_disp[i]=abs(delta_R[i])
+                damp_disp[i]=round(abs(delta_R[i]),3)
             else:
-                damp_disp[i]=abs(delta_R[i]-delta_R[i-1])
+                damp_disp[i]=round(abs(delta_R[i]-delta_R[i-1]),3)
         return damp_disp
     @staticmethod
     def Residual_modal_strain_energy(FR,delta_R):
@@ -551,7 +548,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         """        
         FR=[0]*len(phi_R)
         for i in range(len(phi_R)):
-            FR[i]=(w1[i]*phi_R[i]*Gamma_R*VR)/W_bar_R
+            FR[i]=round(((w1[i]*phi_R[i]*Gamma_R*VR)/W_bar_R),3)
         return FR
     @staticmethod
     def Residual_design_deflection(DRD,phi_R):
@@ -564,7 +561,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         """        
         delta_RD=[0]*len(phi_R)
         for i in range(len(phi_R)):
-            delta_RD[i]=DRD*phi_R[i]
+            delta_RD[i]=round((DRD*phi_R[i]),3)
         return delta_RD
     @staticmethod
     def Residual_design_roof_displacement(Gamma_R,SDS,TR,BR,SD1):
@@ -637,7 +634,7 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         phi_ir=[0]*(len(modal_shape_vector_1)) 
         for i in range (len(modal_shape_vector_1)):
             temp=(1-gamma_1*modal_shape_vector_1[i])/(1-gamma_1)
-            phi_ir[i]=temp
+            phi_ir[i]=round(temp,3)
         return phi_ir
     @staticmethod
     def Residual_modal_mass(total_mass,modal_mass_1):
@@ -715,3 +712,15 @@ class Combinatory_Calculations: # A class for conducting calculations related to
         """        
         V=square_root(power(V1,2)+power(VR,2))
         return round(V,3)
+    @staticmethod
+    def Total_damper_displacement_vector(damp_disp_1,damp_disp_r):
+        """Calculates the total displacement vector for dampers
+
+        Args:
+            damp_disp_1 (double): Damper displacement vector in fundamental mode
+            damp_disp_r (double): Damper displacement vector in residual mode
+        """        
+        total_damper_displacement=[0]*len(damp_disp_1)
+        for i in range(len(damp_disp_1)):
+            total_damper_displacement[i]=round((damp_disp_1[i]+damp_disp_r[i]),3)
+        return total_damper_displacement
