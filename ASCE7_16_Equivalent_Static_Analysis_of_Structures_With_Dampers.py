@@ -338,7 +338,7 @@ class Fundamental_Mode_Parameters: # A class for the fundamental-mode-related ca
         if T1D<Ts:
             a = (9.81*Gamma_1*SDS*power(T1D,2))/(4*B1D*power(pi,2))
             b = (9.81*Gamma_1*SD1*power(T1,2))/(4*B1E*power(pi,2))
-            if a>=b:
+            if b<=a:
                 D1D=a
             else:
                 D1D=b
@@ -577,9 +577,9 @@ class Residual_Mode_Parameters: # A class for the residual-mode-related calculat
         a = (9.81*Gamma_R*SD1*TR)/(4*BR*power(pi,2))
         b = (9.81*Gamma_R*SDS*power(TR,2))/(4*BR*power(pi,2))
         if a<=b:
-            DRD=a
-        else:
             DRD=b
+        else:
+            DRD=a
         return round(DRD,3)
     @staticmethod
     def Residual_design_base_shear(Csr,W_bar_R):
@@ -722,5 +722,33 @@ class Combinatory_Calculations: # A class for conducting calculations related to
         """        
         total_damper_displacement=[0]*len(damp_disp_1)
         for i in range(len(damp_disp_1)):
-            total_damper_displacement[i]=round((damp_disp_1[i]+damp_disp_r[i]),3)
+            total_damper_displacement[i]=round((square_root(power(damp_disp_r[i],2)+power(damp_disp_1[i],2))),3)
         return total_damper_displacement
+    @staticmethod
+    def Fixed_base_shear(R,SDS,SD1,Ie,T1,W):
+        """Calculates the fixed base shearing force
+
+        Args:
+            R (double): Response modification factor
+            SDS (double): Design, 5% damped, spectral response acceleration parameter at short periods
+            SD1 (double): Design, 5% damped, spectral response acceleration parameter at a period of 1 s
+            Ie (double): Importance factor
+            T1 (double): Fundamental period of the structure
+            W (double): Total seismic mass of the structure
+        """        
+        a = (SDS*W*Ie)/R
+        b = (SD1*W*Ie)/(T1*R)
+        if a<=b:
+            V_Fix = a
+        else:
+            V_Fix = b
+        return round(V_Fix,3)
+    @staticmethod
+    def Minimum_base_shear(V_Fixed):
+        """Calculates the minimum base shearing force
+
+        Args:
+            V_Fixed (double): Fixed base shearing force
+        """        
+        V_min = 0.75*V_Fixed
+        return round(V_min,3)
