@@ -687,20 +687,33 @@ class Combinatory_Calculations: # A class for conducting calculations related to
         mu_D=D1D/Dy
         return round(mu_D,3)
     @staticmethod
-    def Maximum_ductility_demand(Ts,T1D,R,Omega_0,Ie):
+    def Maximum_ductility_demand(Ts,T1D,T1,R,Omega_0,Ie):
         """Calculates the maximum achieveable ductility demand under the conditions of the strutcure (mu_max)
 
         Args:
             Ts (double): Ts ratio (=SD1/SDS)
             T1D (double): Damped period for the fundamental mode
+            T1 (double): Approximate/accurate fundamental period
             R (double): Response modification factor
             Omega_0 (double): Over strength factor
             Ie (double): Importance factor
         """        
         if T1D<=Ts:
             mu_max=0.5*(power((R/(Omega_0*Ie)),2)+1)
-        else:
+            return round(mu_max,3)
+        elif Ts<=T1:
             mu_max=R/(Omega_0*Ie)
+            return round(mu_max,3)
+        elif T1<Ts and Ts<T1D:
+            y1=0.5*(power((R/(Omega_0*Ie)),2)+1)
+            y2=R/(Omega_0*Ie)
+            x1=T1D
+            x2=T1
+            x=Ts
+            mu_max = (((y2-y1)/(x2-x1))*x*(x-x1))+y1 #linear interpolation
+        else:
+            print('**Error! ductility demand can not be calculated!')
+            return 0
         return round(mu_max,3)
     @staticmethod
     def Combined_base_shear(V1,VR):
