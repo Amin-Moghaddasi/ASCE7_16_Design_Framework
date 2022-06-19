@@ -220,26 +220,29 @@ class Isolation_System: # Calculations related to the isolation system
         K_eff = (F1+((DM-d1)*K2))/DM
         return round(K_eff,3)
     @staticmethod
-    def Hysteresis_Loop_Dissipated_Energy(Fy,DM):
+    def Hysteresis_Loop_Dissipated_Energy(Fy_list,DM):
         """Calculates the total energy dissipated in a single cycle at displacement Dm by an isolator device (E_loop)
 
         Args:
-            Fy (double): Yield force/stress
+            Fy_list (list): Yield force/stress list
             DM (double): Maximum displacement/strain
         """        
-        E_loop = 4*Fy*DM
+        E_loop =0
+        for i in range (len(Fy_list)):
+            E_loop += 4*Fy_list[i]*DM
         return round(E_loop,3)
     @staticmethod
-    def Effective_Damping_of_the_Isolation_System(E_M,kM,DM):
+    def Effective_Damping_of_the_Isolation_System(E_M,kM,DM,N):
         """Calculates the effective damping of the isolation system at maximum displacement (beta_M)
 
         Args:
             E_M (double): Energy dissipation value for each isolator device at maximum displacement
             kM (double): The effective stiffness value of the whole isolation system
             DM (double): Maximum (ultimate) displacement/strain
+            N (double) : Number of Isolator devices
         """        
         denominator = 2*pi*kM*(power(DM,2))
-        beta_M = E_M/denominator
+        beta_M = E_M/(denominator*16)
         return round(beta_M,3)
     @staticmethod
     def Maximum_displacement(SM1,TM,BM,g):
@@ -288,11 +291,11 @@ class Isolation_System: # Calculations related to the isolation system
         D_TM = DM * (1+fraction)
         return round(D_TM,3)
     @staticmethod
-    def Isolation_System_Yield_Shear(Fy,R_I,N,Ws,W,beta_M,hysteresis_condition):
+    def Isolation_System_Yield_Shear(Fy_list,R_I,N,Ws,W,beta_M,hysteresis_condition):
         """Calculates the isolation system shearing force (Vs_iso)
 
         Args:
-            Fy (double): Isolator device yield force
+            Fy_list (list): List containing yield forces of each isolator
             R_I (double): Isolation system response modification factor
             N (double): Number of Isolator devices
             Ws (double): Weigth of superstructure
@@ -308,7 +311,9 @@ class Isolation_System: # Calculations related to the isolation system
             print('**Error! Check the input on hysteresis condition!')
             return 0
         constant1=Ws/W
-        Vs_iso = (1.5*Fy*N*(power(constant1,constant)))/R_I
+        Vs_iso =0
+        for i in range (N-1):
+            Vs_iso = (1.5*Fy_list[i]*(power(constant1,constant)))/R_I
         return round(Vs_iso,3)
 class Structure: #Calculations related to the structure itself
     @staticmethod
