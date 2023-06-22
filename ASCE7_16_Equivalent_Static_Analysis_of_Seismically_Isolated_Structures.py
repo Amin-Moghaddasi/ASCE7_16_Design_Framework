@@ -4,7 +4,7 @@
 * Developed by Amin Moghaddasi SEI member of ASCE. Member I.D. #: 1221458
 * I would be happy if you contribute further to this project.
 * Reach me on Github: https://github.com/Amin-Moghaddasi 
-* Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the beginer designers using this code.
+* Also pardon me explaining basic things in comments and every docstring. Those explanations are meant to be for the beginner designers using this code.
 """
 from math import pow as power # Function returning x to the power of y (power(x,y)). Example: power(3,4)= 3^4=81
 from math import sqrt as square_root # Function returning the square root of a given number. Example: square_root(4)=2
